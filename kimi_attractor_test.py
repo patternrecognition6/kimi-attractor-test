@@ -74,21 +74,21 @@ def call_moonshot(model: str, messages: list[dict], max_tokens: int = 1024, retr
 
             if response.status_code == 429:
                 wait = (attempt + 1) * 10
-                print(f"    Rate limited, waiting {wait}s...")
+                print(f"    Rate limited, waiting {wait}s...", flush=True)
                 time.sleep(wait)
                 continue
 
             last_error = f"API error {response.status_code}: {response.text[:200]}"
-            print(f"    {last_error}, retrying...")
+            print(f"    {last_error}, retrying...", flush=True)
             time.sleep(2)
 
         except requests.exceptions.Timeout:
             last_error = "Request timeout"
-            print(f"    Timeout, retrying...")
+            print(f"    Timeout, retrying...", flush=True)
             time.sleep(5)
         except requests.exceptions.RequestException as e:
             last_error = str(e)
-            print(f"    Request error: {e}, retrying...")
+            print(f"    Request error: {e}, retrying...", flush=True)
             time.sleep(2)
 
     raise RuntimeError(f"Failed after {retries} attempts: {last_error}")
@@ -103,7 +103,7 @@ def run_conversation(model: str, seed_prompt: str, turns: int = 20) -> dict:
     instance_b_history = []
     tokens_this_conv = 0
 
-    print(f"  Seed: {seed_prompt[:50]}...")
+    print(f"  Seed: {seed_prompt[:50]}...", flush=True)
 
     # Instance A starts
     messages_a = [
@@ -116,14 +116,14 @@ def run_conversation(model: str, seed_prompt: str, turns: int = 20) -> dict:
     instance_a_history.append({"role": "user", "content": seed_prompt})
     instance_a_history.append({"role": "assistant", "content": response_a})
     full_conversation.append({"speaker": "A", "content": response_a})
-    print(f"  Turn 1/{turns} (A) [{tokens} tokens]")
+    print(f"  Turn 1/{turns} (A) [{tokens} tokens]", flush=True)
 
     last_response = response_a
     
     for turn in range(2, turns + 1):
         # Check token cap
         if total_tokens_used >= MAX_TOKENS_TOTAL:
-            print(f"  ⚠️ Token cap reached at turn {turn}")
+            print(f"  ⚠️ Token cap reached at turn {turn}", flush=True)
             break
             
         if turn % 2 == 0:
@@ -134,7 +134,7 @@ def run_conversation(model: str, seed_prompt: str, turns: int = 20) -> dict:
             tokens_this_conv += tokens
             instance_b_history.append({"role": "assistant", "content": response_b})
             full_conversation.append({"speaker": "B", "content": response_b})
-            print(f"  Turn {turn}/{turns} (B) [{tokens} tokens]")
+            print(f"  Turn {turn}/{turns} (B) [{tokens} tokens]", flush=True)
             last_response = response_b
         else:
             # Instance A's turn
@@ -144,7 +144,7 @@ def run_conversation(model: str, seed_prompt: str, turns: int = 20) -> dict:
             tokens_this_conv += tokens
             instance_a_history.append({"role": "assistant", "content": response_a})
             full_conversation.append({"speaker": "A", "content": response_a})
-            print(f"  Turn {turn}/{turns} (A) [{tokens} tokens]")
+            print(f"  Turn {turn}/{turns} (A) [{tokens} tokens]", flush=True)
             last_response = response_a
 
     return {
@@ -159,14 +159,14 @@ def run_experiment(model: str = DEFAULT_MODEL, turns: int = 20, max_convos: int 
     """Run the attractor states experiment."""
     global total_tokens_used
     
-    print(f"{'='*60}")
-    print(f"Attractor States Experiment - Kimi K2")
-    print(f"{'='*60}")
-    print(f"Model: {model}")
-    print(f"Turns per conversation: {turns}")
-    print(f"Seed prompts: {min(max_convos, len(SEED_PROMPTS))}")
-    print(f"Token cap: {MAX_TOKENS_TOTAL}")
-    print(f"{'='*60}\n")
+    print(f"{'='*60}", flush=True)
+    print(f"Attractor States Experiment - Kimi K2", flush=True)
+    print(f"{'='*60}", flush=True)
+    print(f"Model: {model}", flush=True)
+    print(f"Turns per conversation: {turns}", flush=True)
+    print(f"Seed prompts: {min(max_convos, len(SEED_PROMPTS))}", flush=True)
+    print(f"Token cap: {MAX_TOKENS_TOTAL}", flush=True)
+    print(f"{'='*60}\n", flush=True)
 
     # Results directory
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -177,10 +177,10 @@ def run_experiment(model: str = DEFAULT_MODEL, turns: int = 20, max_convos: int 
     prompts_to_run = SEED_PROMPTS[:max_convos]
     
     for i, seed_prompt in enumerate(prompts_to_run):
-        print(f"\n[Conversation {i+1}/{len(prompts_to_run)}]")
+        print(f"\n[Conversation {i+1}/{len(prompts_to_run)}]", flush=True)
         
         if total_tokens_used >= MAX_TOKENS_TOTAL:
-            print(f"⚠️ Token cap reached, stopping")
+            print(f"⚠️ Token cap reached, stopping", flush=True)
             break
             
         try:
@@ -196,18 +196,18 @@ def run_experiment(model: str = DEFAULT_MODEL, turns: int = 20, max_convos: int 
                     "generated_at": datetime.now().isoformat(),
                 }, f, indent=2)
             
-            print(f"  ✓ Saved (total tokens: {total_tokens_used})")
+            print(f"  ✓ Saved (total tokens: {total_tokens_used})", flush=True)
             
         except Exception as e:
-            print(f"  ✗ Failed: {e}")
+            print(f"  ✗ Failed: {e}", flush=True)
             break
 
-    print(f"\n{'='*60}")
-    print(f"SUMMARY")
-    print(f"{'='*60}")
-    print(f"Conversations completed: {len(conversations)}")
-    print(f"Total tokens used: {total_tokens_used}")
-    print(f"Results saved to: {results_dir}")
+    print(f"\n{'='*60}", flush=True)
+    print(f"SUMMARY", flush=True)
+    print(f"{'='*60}", flush=True)
+    print(f"Conversations completed: {len(conversations)}", flush=True)
+    print(f"Total tokens used: {total_tokens_used}", flush=True)
+    print(f"Results saved to: {results_dir}", flush=True)
     
     return conversations
 
